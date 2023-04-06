@@ -185,6 +185,7 @@ void createMIDIseq(int xbegin, int xend, int liney){
   //}
   // Save the MIDI sequence as a standard MIDI file
   try {
+    //File outputFile = new File("output.mid");
     File outputFile = new File("/Users/yunxingao/Documents/stuff for school/Viz Wall Competition/MIDI_file_thing/output.mid");
     MidiSystem.write(seq, 1, outputFile);
     println("MIDI file saved successfully!");
@@ -210,6 +211,7 @@ void playMIDIseq(){
   // Load the MIDI file
   try {
       File midiFile = new File("/Users/yunxingao/Documents/stuff for school/Viz Wall Competition/MIDI_file_thing/output.mid");
+      //File midiFile = new File("output.mid");
       InputStream is = new FileInputStream(midiFile);
       Sequence sequence = MidiSystem.getSequence(is);
       sequencer.setSequence(sequence);
@@ -220,12 +222,30 @@ void playMIDIseq(){
       println("4");
     }
   
-  int instrumentIndex = 0;
+  int instrumentIndex = 50;
   Instrument[] instruments = synthesizer.getDefaultSoundbank().getInstruments();
   Instrument instrument = instruments[instrumentIndex];
+  println(instrument);
   synthesizer.loadInstrument(instrument);
-  println("almost playing");
+  println("starting to play");
+  
+//  int channel = 1; // choose the channel you want to use (0-15)
+//int bank = 2; // choose the bank number (0-127)
+//int program = 0; // choose the program number (0-127)
+
+//MidiChannel[] channels = synthesizer.getChannels();
+//MidiChannel midiChannel = channels[channel];
+//midiChannel.programChange(bank, program);
+  // Set instrument to all notes on channel 1
+  try{
+            Synthesizer synth = MidiSystem.getSynthesizer();
+            synth.open();
+            MidiChannel channel = synth.getChannels()[0];
+            channel.programChange(50); // Set instrument to piano
   sequencer.start();
+  } catch(Exception ex){
+    ex.printStackTrace();
+  }
   
   //try {
   //  //Thread.sleep(1000); // Wait for 1 second
