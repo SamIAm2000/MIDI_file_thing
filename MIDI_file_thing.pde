@@ -3,7 +3,7 @@ import interfascia.*;
 import java.io.*;
 
 GUIController c;
-IFButton b1, b2, ib1, ib2, ib3, ib4, ib5;
+IFButton b1, b2, ib1, ib2, ib3, ib4, ib5, ibmethodR, ibmethodG, ibmethodB, ibmethodRGB;
 IFLabel l;
 
 // Define some constants
@@ -29,43 +29,59 @@ Synthesizer synthesizer;
 Instrument[] instruments;
 int instrumentIndex = 0;
 boolean isPlaying = false;
+int sonMethod = 0; //default sonification by red values
 
 void setup() {
   println("the thing has begun");
-  size (1000, 500); //canvas size
-  //fullScreen();
+  //size (1000, 500); //canvas size
+  fullScreen();
   background(255); //background color
   // Load the image and get its pixel data
   img = loadImage(imgname);
   imgx = img.width;
   imgy = img.height;
-  image(img, 0, 0);
+  image(img, 50, height/2-250);
   
   line(startX, mouseYValue, endX, mouseYValue);
   //button stuff
   c = new GUIController (this);
-  b1 = new IFButton ("Generate", width -100, 40, 60, 20);
-  b2 = new IFButton ("Play", width - 100, 80, 60, 20);
-  ib1 = new IFButton ("Mondrian", width/2 + 30, 40, 70, 20);
-  ib2 = new IFButton ("Starry Night", width/2 + 30, 70, 70, 20);
-  ib3 = new IFButton ("Nature", width/2 + 30, 100, 70, 20);
-  ib4 = new IFButton ("Buildings", width/2 + 30, 130, 70, 20);
-  ib5 = new IFButton ("Meme", width/2 + 30, 160, 70, 20);
+  b1 = new IFButton ("Play", width/2 +300, height/2-250+40, 60, 20);
+  //b2 = new IFButton ("Play", width/2 + 300, height/2-250+70, 60, 20);
+  
+  ib1 = new IFButton ("Mondrian", width/2 + 30, height/2-250+40, 70, 20);
+  ib2 = new IFButton ("Starry Night", width/2 + 30, height/2-250+70, 70, 20);
+  ib3 = new IFButton ("Nature", width/2 + 30, height/2-250+100, 70, 20);
+  ib4 = new IFButton ("Buildings", width/2 + 30, height/2-250+130, 70, 20);
+  ib5 = new IFButton ("Meme", width/2 + 30, height/2-250+160, 70, 20);
+  
+  ibmethodR = new IFButton ("Red", width/2 + 170, height/2-250+40, 70, 20);
+  ibmethodG = new IFButton ("Green", width/2 + 170, height/2-250+70, 70, 20);
+  ibmethodB = new IFButton ("Blue", width/2 + 170, height/2-250+100, 70, 20);
+  ibmethodRGB = new IFButton ("Luminosity", width/2 + 170, height/2-250+130, 70, 20);
   
   b1.addActionListener(this);
-  b2.addActionListener(this);
+  //b2.addActionListener(this);
   ib1.addActionListener(this);
   ib2.addActionListener(this);
   ib3.addActionListener(this);
   ib4.addActionListener(this);
   ib5.addActionListener(this);
+  ibmethodR.addActionListener(this);
+  ibmethodB.addActionListener(this);
+  ibmethodG.addActionListener(this);
+  ibmethodRGB.addActionListener(this);
+  
   c.add (b1);
-  c.add (b2);
+  //c.add (b2);
   c.add (ib1);
   c.add (ib2);
   c.add (ib3);
   c.add (ib4);
   c.add (ib5);
+  c.add (ibmethodR);
+  c.add (ibmethodB);
+  c.add (ibmethodG);
+  c.add (ibmethodRGB);
 }
 
 void draw(){
@@ -90,22 +106,64 @@ void mouseReleased() {
   x1 = min(startX, endX);
   x2 = max(startX, endX);
   y = mouseYValue;
-  
+  //x1 = min(startX, endX)-50;
+  //x2 = max(startX, endX)-50;
+  //y = mouseYValue-(height/2-250);
+  println(x1, x2, y);
   for (int x = x1; x <= x2; x++) {
     color pixel = img.get(x, y);
     // do something with the pixel value (e.g., display it on the screen)
-    fill(204, 102, 0); //fills line with orange
+    switch (sonMethod){
+      case 0:
+        fill(255, 0, 0);
+        break;
+      case 1:
+        fill(0, 255, 0);
+        break;
+      case 2:
+        fill(0, 0, 255);
+        break;
+      case 3:
+        fill(255, 255, 255);
+        break;
+    }
+    //fills line with color
     //fill(pixel);
     noStroke();
     rect(x, y, 1, 1);
-  }
+  } 
+  x1 = min(startX, endX)-50;
+  x2 = max(startX, endX)-50;
+  y = mouseYValue-(height/2-250);
 }
 
 void actionPerformed (GUIEvent e) {
   if (e.getSource() == b1) { //generate
-    createMIDIseq(x1, x2, y);
-  } else if (e.getSource() == b2) { //play
+    switch(sonMethod){
+      case 0:
+        createMIDIseqRed(x1, x2, y);
+        break;
+      case 1:
+        createMIDIseqGreen(x1, x2, y);
+        break;
+      case 2:
+        createMIDIseqBlue(x1, x2, y);
+        break;
+      case 3:
+        createMIDIseqRGB(x1, x2, y);
+        break;
+    }
+    
+  //} else if (e.getSource() == b2) { //play
     playMIDIseq();
+  } else if (e.getSource() == ibmethodR){
+     sonMethod = 0;
+  } else if (e.getSource() == ibmethodG){
+    sonMethod = 1;
+  } else if (e.getSource() == ibmethodB){
+    sonMethod = 2;
+  } else if (e.getSource() == ibmethodRGB){
+    sonMethod = 3;
   } else {
       if (e.getSource() == ib1) {
       imgname = "mondrian.png";
@@ -119,12 +177,84 @@ void actionPerformed (GUIEvent e) {
       imgname = "meme.png";
     }
     img = loadImage(imgname);
-    image(img, 0, 0);
+    image(img, 50, height/2-250);
   }
 }
 
 
-void createMIDIseq(int xbegin, int xend, int liney){
+void createMIDIseqRed(int xbegin, int xend, int liney){
+  img.loadPixels();
+    // Create a new MIDI sequence
+  try {
+    seq = new Sequence(Sequence.PPQ, 5);
+    println("new midi sequence generated");
+  }
+  catch (Exception ex) {
+    ex.printStackTrace();
+  }
+
+  // Create a new MIDI track
+  Track track = seq.createTrack();
+
+   // Set the initial time stamp to 0
+  int time = 0;
+  // Iterate through the pixels of the image and generate MIDI notes based on their values
+  for (int i = xbegin+liney * img.width; i < xend + liney * img.width; i++) {
+    //println(i);
+    int pixelColor = img.pixels[i];
+    int brightnessValue = int(red(pixelColor));
+    int noteValue = int(map(brightnessValue, 0, 255, 0, 127));
+    int velocity = 127;
+
+    // Add a note on event to the MIDI track
+    ShortMessage noteOn = new ShortMessage();
+    //noteOn.setMessage(NOTE_ON, CHANNEL, noteValue, velocity);
+    try {
+      noteOn.setMessage(NOTE_ON, CHANNEL, noteValue, velocity);
+      //xxx.setMessage(command, channel, note, velocity);
+      //println("2");
+    }
+    catch (InvalidMidiDataException ex) {
+      ex.printStackTrace();
+    }
+    MidiEvent noteOnEvent = new MidiEvent(noteOn, time);
+    track.add(noteOnEvent);
+
+    // Add a note off event to the MIDI track
+    ShortMessage noteOff = new ShortMessage();
+    //noteOff.setMessage(NOTE_OFF, CHANNEL, noteValue, velocity);
+    try {
+      noteOff.setMessage(NOTE_OFF, CHANNEL, noteValue, velocity);
+      //println(3);
+    }
+    catch (InvalidMidiDataException ex) {
+      ex.printStackTrace();
+    }
+
+    MidiEvent noteOffEvent = new MidiEvent(noteOff, time + 1);
+    track.add(noteOffEvent);
+    time++;
+  }
+  //try{
+  //  sequencer.setSequence(seq);
+  //  sequencer.setTempoInBPM(220);
+  //} catch(InvalidMidiDataException ex){
+  //  ex.printStackTrace();
+  //}
+  // Save the MIDI sequence as a standard MIDI file
+  try {
+    //File outputFile = new File("output.mid");
+    File outputFile = new File("/Users/yunxingao/Documents/stuff for school/Viz Wall Competition/MIDI_file_thing/output.mid");
+    MidiSystem.write(seq, 1, outputFile);
+    println("MIDI file saved successfully!");
+  }
+  catch (IOException ex) {
+    println("Error saving MIDI file: " + ex.getMessage());
+  }
+  
+}
+
+void createMIDIseqGreen(int xbegin, int xend, int liney){
   img.loadPixels();
     // Create a new MIDI sequence
   try {
@@ -144,7 +274,151 @@ void createMIDIseq(int xbegin, int xend, int liney){
   for (int i = xbegin+liney * img.width; i < xend + liney * img.width; i++) {
     println(i);
     int pixelColor = img.pixels[i];
-    int brightnessValue = int(red(pixelColor));
+    int brightnessValue = int(green(pixelColor));
+    int noteValue = int(map(brightnessValue, 0, 255, 0, 127));
+    int velocity = 127;
+
+    // Add a note on event to the MIDI track
+    ShortMessage noteOn = new ShortMessage();
+    //noteOn.setMessage(NOTE_ON, CHANNEL, noteValue, velocity);
+    try {
+      noteOn.setMessage(NOTE_ON, CHANNEL, noteValue, velocity);
+      //xxx.setMessage(command, channel, note, velocity);
+      //println("2");
+    }
+    catch (InvalidMidiDataException ex) {
+      ex.printStackTrace();
+    }
+    MidiEvent noteOnEvent = new MidiEvent(noteOn, time);
+    track.add(noteOnEvent);
+
+    // Add a note off event to the MIDI track
+    ShortMessage noteOff = new ShortMessage();
+    //noteOff.setMessage(NOTE_OFF, CHANNEL, noteValue, velocity);
+    try {
+      noteOff.setMessage(NOTE_OFF, CHANNEL, noteValue, velocity);
+      //println(3);
+    }
+    catch (InvalidMidiDataException ex) {
+      ex.printStackTrace();
+    }
+
+    MidiEvent noteOffEvent = new MidiEvent(noteOff, time + 1);
+    track.add(noteOffEvent);
+    time++;
+  }
+  //try{
+  //  sequencer.setSequence(seq);
+  //  sequencer.setTempoInBPM(220);
+  //} catch(InvalidMidiDataException ex){
+  //  ex.printStackTrace();
+  //}
+  // Save the MIDI sequence as a standard MIDI file
+  try {
+    //File outputFile = new File("output.mid");
+    File outputFile = new File("/Users/yunxingao/Documents/stuff for school/Viz Wall Competition/MIDI_file_thing/output.mid");
+    MidiSystem.write(seq, 1, outputFile);
+    println("MIDI file saved successfully!");
+  }
+  catch (IOException ex) {
+    println("Error saving MIDI file: " + ex.getMessage());
+  }
+  
+}
+
+void createMIDIseqBlue(int xbegin, int xend, int liney){
+  img.loadPixels();
+    // Create a new MIDI sequence
+  try {
+    seq = new Sequence(Sequence.PPQ, 5);
+    println("new midi sequence generated");
+  }
+  catch (Exception ex) {
+    ex.printStackTrace();
+  }
+
+  // Create a new MIDI track
+  Track track = seq.createTrack();
+
+   // Set the initial time stamp to 0
+  int time = 0;
+  // Iterate through the pixels of the image and generate MIDI notes based on their values
+  for (int i = xbegin+liney * img.width; i < xend + liney * img.width; i++) {
+    println(i);
+    int pixelColor = img.pixels[i];
+    int brightnessValue = int(blue(pixelColor));
+    int noteValue = int(map(brightnessValue, 0, 255, 0, 127));
+    int velocity = 127;
+
+    // Add a note on event to the MIDI track
+    ShortMessage noteOn = new ShortMessage();
+    //noteOn.setMessage(NOTE_ON, CHANNEL, noteValue, velocity);
+    try {
+      noteOn.setMessage(NOTE_ON, CHANNEL, noteValue, velocity);
+      //xxx.setMessage(command, channel, note, velocity);
+      //println("2");
+    }
+    catch (InvalidMidiDataException ex) {
+      ex.printStackTrace();
+    }
+    MidiEvent noteOnEvent = new MidiEvent(noteOn, time);
+    track.add(noteOnEvent);
+
+    // Add a note off event to the MIDI track
+    ShortMessage noteOff = new ShortMessage();
+    //noteOff.setMessage(NOTE_OFF, CHANNEL, noteValue, velocity);
+    try {
+      noteOff.setMessage(NOTE_OFF, CHANNEL, noteValue, velocity);
+      //println(3);
+    }
+    catch (InvalidMidiDataException ex) {
+      ex.printStackTrace();
+    }
+
+    MidiEvent noteOffEvent = new MidiEvent(noteOff, time + 1);
+    track.add(noteOffEvent);
+    time++;
+  }
+  //try{
+  //  sequencer.setSequence(seq);
+  //  sequencer.setTempoInBPM(220);
+  //} catch(InvalidMidiDataException ex){
+  //  ex.printStackTrace();
+  //}
+  // Save the MIDI sequence as a standard MIDI file
+  try {
+    //File outputFile = new File("output.mid");
+    File outputFile = new File("/Users/yunxingao/Documents/stuff for school/Viz Wall Competition/MIDI_file_thing/output.mid");
+    MidiSystem.write(seq, 1, outputFile);
+    println("MIDI file saved successfully!");
+  }
+  catch (IOException ex) {
+    println("Error saving MIDI file: " + ex.getMessage());
+  }
+  
+}
+
+void createMIDIseqRGB(int xbegin, int xend, int liney){
+  img.loadPixels();
+    // Create a new MIDI sequence
+  try {
+    seq = new Sequence(Sequence.PPQ, 5);
+    println("new midi sequence generated");
+  }
+  catch (Exception ex) {
+    ex.printStackTrace();
+  }
+
+  // Create a new MIDI track
+  Track track = seq.createTrack();
+
+   // Set the initial time stamp to 0
+  int time = 0;
+  // Iterate through the pixels of the image and generate MIDI notes based on their values
+  for (int i = xbegin+liney * img.width; i < xend + liney * img.width; i++) {
+    println(i);
+    int pixelColor = img.pixels[i];
+    int brightnessValue = (int(blue(pixelColor))+int(red(pixelColor))+int(green(pixelColor)))/3;
     int noteValue = int(map(brightnessValue, 0, 255, 0, 127));
     int velocity = 127;
 
@@ -225,7 +499,7 @@ void playMIDIseq(){
   int instrumentIndex = 50;
   Instrument[] instruments = synthesizer.getDefaultSoundbank().getInstruments();
   Instrument instrument = instruments[instrumentIndex];
-  println(instrument);
+  //println(instrument);
   synthesizer.loadInstrument(instrument);
   println("starting to play");
   
