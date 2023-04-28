@@ -82,9 +82,12 @@ void setup() {
   c.add (ibmethodB);
   c.add (ibmethodG);
   c.add (ibmethodRGB);
+  fill(255, 0, 0);
 }
 
 void draw(){
+  
+  
   if (mousePressed) {
     endX = mouseX;
     stroke(0);
@@ -93,7 +96,7 @@ void draw(){
   if (!mousePressed){
     
   }
-  
+  ellipse(width/2 + 190, height/2-250+10, 20, 20);
 }
 void mousePressed(){
   startX = mouseX;
@@ -272,7 +275,7 @@ void createMIDIseqGreen(int xbegin, int xend, int liney){
   int time = 0;
   // Iterate through the pixels of the image and generate MIDI notes based on their values
   for (int i = xbegin+liney * img.width; i < xend + liney * img.width; i++) {
-    println(i);
+    //println(i);
     int pixelColor = img.pixels[i];
     int brightnessValue = int(green(pixelColor));
     int noteValue = int(map(brightnessValue, 0, 255, 0, 127));
@@ -344,7 +347,7 @@ void createMIDIseqBlue(int xbegin, int xend, int liney){
   int time = 0;
   // Iterate through the pixels of the image and generate MIDI notes based on their values
   for (int i = xbegin+liney * img.width; i < xend + liney * img.width; i++) {
-    println(i);
+    //println(i);
     int pixelColor = img.pixels[i];
     int brightnessValue = int(blue(pixelColor));
     int noteValue = int(map(brightnessValue, 0, 255, 0, 127));
@@ -416,7 +419,7 @@ void createMIDIseqRGB(int xbegin, int xend, int liney){
   int time = 0;
   // Iterate through the pixels of the image and generate MIDI notes based on their values
   for (int i = xbegin+liney * img.width; i < xend + liney * img.width; i++) {
-    println(i);
+    //println(i);
     int pixelColor = img.pixels[i];
     int brightnessValue = (int(blue(pixelColor))+int(red(pixelColor))+int(green(pixelColor)))/3;
     int noteValue = int(map(brightnessValue, 0, 255, 0, 127));
@@ -512,11 +515,11 @@ void playMIDIseq(){
 //midiChannel.programChange(bank, program);
   // Set instrument to all notes on channel 1
   try{
-            Synthesizer synth = MidiSystem.getSynthesizer();
-            synth.open();
-            MidiChannel channel = synth.getChannels()[0];
-            channel.programChange(50); // Set instrument to piano
-  sequencer.start();
+    Synthesizer synth = MidiSystem.getSynthesizer();
+    synth.open();
+    MidiChannel channel = synth.getChannels()[0];
+    channel.programChange(50); // Set instrument to piano
+    sequencer.start();
   } catch(Exception ex){
     ex.printStackTrace();
   }
