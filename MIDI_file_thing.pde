@@ -1,11 +1,18 @@
 import javax.sound.midi.*;
 import interfascia.*;
 import java.io.*;
+import java.util.Collection;
+AMidiPlayer midiPlayer = new AMidiPlayer();
 
 GUIController c;
-IFButton b1, b2, ib1, ib2, ib3, ib4, ib5, ibmethodR, ibmethodG, ibmethodB, ibmethodRGB;
+IFButton b1, b2, b3, ib1, ib2, ib3, ib4, ib5, ibmethodR, ibmethodG, ibmethodB, ibmethodRGB;
 IFLabel l;
+PGraphics pg;
 
+int anim = 0;
+int clear = 0;
+float i = 0;
+int play = 0;
 // Define some constants
 final int CHANNEL = 1;
 final int NOTE_ON = 0x90;
@@ -41,12 +48,14 @@ void setup() {
   imgx = img.width;
   imgy = img.height;
   image(img, 50, height/2-250);
+  pg = createGraphics(width/2, height/2);
   
   line(startX, mouseYValue, endX, mouseYValue);
   //button stuff
   c = new GUIController (this);
   b1 = new IFButton ("Play", width/2 +300, height/2-250+40, 60, 20);
-  //b2 = new IFButton ("Play", width/2 + 300, height/2-250+70, 60, 20);
+  b2 = new IFButton ("Clear", width/2 + 300, height/2-250+70, 60, 20);
+  b3 = new IFButton ("Tog Anim", width/2 + 300, height/2-250+100, 60, 20);
   
   ib1 = new IFButton ("Mondrian", width/2 + 30, height/2-250+40, 70, 20);
   ib2 = new IFButton ("Starry Night", width/2 + 30, height/2-250+70, 70, 20);
@@ -60,7 +69,8 @@ void setup() {
   ibmethodRGB = new IFButton ("Luminosity", width/2 + 170, height/2-250+130, 70, 20);
   
   b1.addActionListener(this);
-  //b2.addActionListener(this);
+  b2.addActionListener(this);
+  b3.addActionListener(this);
   ib1.addActionListener(this);
   ib2.addActionListener(this);
   ib3.addActionListener(this);
@@ -72,7 +82,8 @@ void setup() {
   ibmethodRGB.addActionListener(this);
   
   c.add (b1);
-  //c.add (b2);
+  c.add (b2);
+  c.add (b3);
   c.add (ib1);
   c.add (ib2);
   c.add (ib3);
@@ -82,12 +93,20 @@ void setup() {
   c.add (ibmethodB);
   c.add (ibmethodG);
   c.add (ibmethodRGB);
-  fill(255, 0, 0);
+  
+  fill(0);
+  textSize(20);
+  text("1. Select image from first column", width/2-100, 50);
+  text("2. Select sonification parameter from second column", width/2-100, 70);
+  text("3. Draw horizontal line over any area of the image", width/2-100, 90);
+  text("4. Click play to hear sonification", width/2-100, 110);
+  text("You can also choose to clear the animations with Clear, or toggle animations with Tog Anim", width/2-100, 130);
+  
+  fill(255, 0, 0); // for default red circle
 }
 
 void draw(){
-  
-  
+  //image(img, 50, height/2-250);
   if (mousePressed) {
     endX = mouseX;
     stroke(0);
@@ -97,6 +116,38 @@ void draw(){
     
   }
   ellipse(width/2 + 190, height/2-250+10, 20, 20);
+  
+  if (anim %2 ==0){
+    pg.beginDraw();
+    for (Note n : midiPlayer.getNotes()) {
+      //println(n.note);
+      //pg.rect(i, height/2- map(n.note, 0, 127, 0, height/2-100), random(20), random(20));
+      pg.rect(i, height/2- map(n.note, 0, 127, 0, height/2-100), 10, 10);
+      i +=0.05;
+    //fill(map(n.note % 12, 0, 11, 0, 255), 
+    //  map(n.channel, 0, 15, 80, 255), 
+    //  map(n.note, 0, 127, 100, 255) * random(0.9, 1.0));
+
+    //pushMatrix();
+    //float t = frameCount * 0.003;
+    //scale(n.velocity * 0.05);
+    //rotateX(n.channel + noise(n.note * 0.1, t));
+    //rotateY(n.note * 0.06);
+    //rotateZ(map(n.note % 12, 0, 12, 0, TWO_PI));
+    //pushMatrix();
+    //translate(0, n.velocity * 0.7, 0);
+    //box(40.0 / n.living, n.velocity * 0.1 + random(10), 40.0 / n.living);
+    //popMatrix();    
+    //translate(0, 5000.0, 0);
+    //box(0.2, 10000, 0.2);
+    //popMatrix();
+  }
+  midiPlayer.update();
+  }
+  pg.endDraw();
+  
+  image(pg, width/2, height/2);
+  
 }
 void mousePressed(){
   startX = mouseX;
@@ -142,6 +193,7 @@ void mouseReleased() {
 
 void actionPerformed (GUIEvent e) {
   if (e.getSource() == b1) { //generate
+    i = 0;
     switch(sonMethod){
       case 0:
         createMIDIseqRed(x1, x2, y);
@@ -156,9 +208,15 @@ void actionPerformed (GUIEvent e) {
         createMIDIseqRGB(x1, x2, y);
         break;
     }
-    
-  //} else if (e.getSource() == b2) { //play
     playMIDIseq();
+  } else if (e.getSource() == b2) { 
+    clear = 1;
+    pg.beginDraw();
+    pg.background(255);
+    pg.endDraw();
+    println("trying to clear");
+  } else if (e.getSource() == b3) { 
+     anim +=1;
   } else if (e.getSource() == ibmethodR){
      sonMethod = 0;
   } else if (e.getSource() == ibmethodG){
@@ -246,8 +304,8 @@ void createMIDIseqRed(int xbegin, int xend, int liney){
   //}
   // Save the MIDI sequence as a standard MIDI file
   try {
-    //File outputFile = new File("output.mid");
-    File outputFile = new File("/Users/yunxingao/Documents/stuff for school/Viz Wall Competition/MIDI_file_thing/output.mid");
+    File outputFile = new File(dataPath("output.mid"));
+    //File outputFile = new File("/Users/yunxingao/Documents/stuff for school/Viz Wall Competition/MIDI_file_thing/output.mid");
     MidiSystem.write(seq, 1, outputFile);
     println("MIDI file saved successfully!");
   }
@@ -318,8 +376,8 @@ void createMIDIseqGreen(int xbegin, int xend, int liney){
   //}
   // Save the MIDI sequence as a standard MIDI file
   try {
-    //File outputFile = new File("output.mid");
-    File outputFile = new File("/Users/yunxingao/Documents/stuff for school/Viz Wall Competition/MIDI_file_thing/output.mid");
+    File outputFile = new File(dataPath("output.mid"));
+    //File outputFile = new File("/Users/yunxingao/Documents/stuff for school/Viz Wall Competition/MIDI_file_thing/output.mid");
     MidiSystem.write(seq, 1, outputFile);
     println("MIDI file saved successfully!");
   }
@@ -390,8 +448,8 @@ void createMIDIseqBlue(int xbegin, int xend, int liney){
   //}
   // Save the MIDI sequence as a standard MIDI file
   try {
-    //File outputFile = new File("output.mid");
-    File outputFile = new File("/Users/yunxingao/Documents/stuff for school/Viz Wall Competition/MIDI_file_thing/output.mid");
+    File outputFile = new File(dataPath("output.mid"));
+    //File outputFile = new File("/Users/yunxingao/Documents/stuff for school/Viz Wall Competition/MIDI_file_thing/output.mid");
     MidiSystem.write(seq, 1, outputFile);
     println("MIDI file saved successfully!");
   }
@@ -462,8 +520,8 @@ void createMIDIseqRGB(int xbegin, int xend, int liney){
   //}
   // Save the MIDI sequence as a standard MIDI file
   try {
-    //File outputFile = new File("output.mid");
-    File outputFile = new File("/Users/yunxingao/Documents/stuff for school/Viz Wall Competition/MIDI_file_thing/output.mid");
+    File outputFile = new File(dataPath("output.mid"));
+    //File outputFile = new File("/Users/yunxingao/Documents/stuff for school/Viz Wall Competition/MIDI_file_thing/output.mid");
     MidiSystem.write(seq, 1, outputFile);
     println("MIDI file saved successfully!");
   }
@@ -475,62 +533,49 @@ void createMIDIseqRGB(int xbegin, int xend, int liney){
 
 void playMIDIseq(){
   // Open the default sequencer and synthesizer
-  println("play begin");
-  try {
-    sequencer = MidiSystem.getSequencer();
-    sequencer.open();
-    synthesizer = MidiSystem.getSynthesizer();
-    synthesizer.open();
-  } catch (MidiUnavailableException ex) {
-    ex.printStackTrace();
-  }
-  println("2");
-  // Load the MIDI file
-  try {
-      File midiFile = new File("/Users/yunxingao/Documents/stuff for school/Viz Wall Competition/MIDI_file_thing/output.mid");
-      //File midiFile = new File("output.mid");
-      InputStream is = new FileInputStream(midiFile);
-      Sequence sequence = MidiSystem.getSequence(is);
-      sequencer.setSequence(sequence);
-      //sequencer.start();
-      println("3");
-    } catch (Exception ex) {
-      ex.printStackTrace();
-      println("4");
-    }
+  play = 1;
+  midiPlayer.load(dataPath("output.mid"));
+  midiPlayer.start();
   
-  int instrumentIndex = 50;
-  Instrument[] instruments = synthesizer.getDefaultSoundbank().getInstruments();
-  Instrument instrument = instruments[instrumentIndex];
-  //println(instrument);
-  synthesizer.loadInstrument(instrument);
-  println("starting to play");
-  
-//  int channel = 1; // choose the channel you want to use (0-15)
-//int bank = 2; // choose the bank number (0-127)
-//int program = 0; // choose the program number (0-127)
-
-//MidiChannel[] channels = synthesizer.getChannels();
-//MidiChannel midiChannel = channels[channel];
-//midiChannel.programChange(bank, program);
-  // Set instrument to all notes on channel 1
-  try{
-    Synthesizer synth = MidiSystem.getSynthesizer();
-    synth.open();
-    MidiChannel channel = synth.getChannels()[0];
-    channel.programChange(50); // Set instrument to piano
-    sequencer.start();
-  } catch(Exception ex){
-    ex.printStackTrace();
-  }
-  
+  //println("play begin");
   //try {
-  //  //Thread.sleep(1000); // Wait for 1 second
-  //  sequencer.start();
-  //  //Thread.sleep(10000); // Wait for 10 seconds
-  //  sequencer.stop();
-  //} catch (InterruptedException ex) {
+  //  sequencer = MidiSystem.getSequencer();
+  //  sequencer.open();
+  //  synthesizer = MidiSystem.getSynthesizer();
+  //  synthesizer.open();
+  //} catch (MidiUnavailableException ex) {
   //  ex.printStackTrace();
   //}
-  println("play end");
+  //println("2");
+  //// Load the MIDI file
+  //try {
+  //    File midiFile = new File("/Users/yunxingao/Documents/stuff for school/Viz Wall Competition/MIDI_file_thing/output.mid");
+  //    //File midiFile = new File("output.mid");
+  //    InputStream is = new FileInputStream(midiFile);
+  //    Sequence sequence = MidiSystem.getSequence(is);
+  //    sequencer.setSequence(sequence);
+  //    //sequencer.start();
+  //    println("3");
+  //  } catch (Exception ex) {
+  //    ex.printStackTrace();
+  //    println("4");
+  //  }
+  
+  //int instrumentIndex = 50;
+  //Instrument[] instruments = synthesizer.getDefaultSoundbank().getInstruments();
+  //Instrument instrument = instruments[instrumentIndex];
+  ////println(instrument);
+  //synthesizer.loadInstrument(instrument);
+  //println("starting to play");
+  
+  //try{
+  //  Synthesizer synth = MidiSystem.getSynthesizer();
+  //  synth.open();
+  //  MidiChannel channel = synth.getChannels()[0];
+  //  channel.programChange(50); // Set instrument to piano
+  //  sequencer.start();
+  //} catch(Exception ex){
+  //  ex.printStackTrace();
+  //}
+  //println("play end");
 }
