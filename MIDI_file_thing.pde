@@ -121,8 +121,8 @@ void draw(){
     pg.beginDraw();
     for (Note n : midiPlayer.getNotes()) {
       //println(n.note);
-      //pg.rect(i, height/2- map(n.note, 0, 127, 0, height/2-100), random(20), random(20));
-      pg.rect(i, height/2- map(n.note, 0, 127, 0, height/2-100), 10, 10);
+      pg.rect(i, height/2- map(n.note, 0, 127, 0, height/2-100), random(20), random(20));
+      //pg.rect(i, height/2- map(n.note, 0, 127, 0, height/2-100), 10, 10);
       i +=0.05;
     //fill(map(n.note % 12, 0, 11, 0, 255), 
     //  map(n.channel, 0, 15, 80, 255), 
